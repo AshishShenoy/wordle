@@ -91,15 +91,26 @@ func main() {
 			i := sort.SearchStrings(wordle_words, guess_word)
 			if i < len(wordle_words) && wordle_words[i] == guess_word {
 				color_vector := get_filled_color_vector("Grey")
+
+				// stores whether an index is allowed to cause another index to be yellow
+				yellow_lock := [WORD_LENGTH]bool{}
+
 				for j, guess_letter := range guess_word {
 					for k, letter := range selected_word {
-						if guess_letter == letter {
-							if j == k {
-								color_vector[j] = "Green"
-								break
-							} else {
-								color_vector[j] = "Yellow"
-							}
+						if guess_letter == letter && j == k {
+							color_vector[j] = "Green"
+							// now the kth index can no longer cause another index to be yellow
+							yellow_lock[k] = true
+							break
+
+						}
+					}
+				}
+				for j, guess_letter := range guess_word {
+					for k, letter := range selected_word {
+						if guess_letter == letter && color_vector[j] != "Green" && yellow_lock[k] == false {
+							color_vector[j] = "Yellow"
+							yellow_lock[k] = true
 						}
 					}
 				}
